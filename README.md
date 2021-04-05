@@ -6,7 +6,19 @@ Read and plot serial data from a microcontroller.
 
 ## Usage
 
-1. Connect your microcontroller to your "master" computer [1]. Set up the microcontroller to send data over the serial port (typically with `print` or `printf`). For example, with this micropython code analog data is read and printed every 500 ms:
+1. Connect your microcontroller to the "master" computer. Set up the microcontroller to send data over the serial port (typically with `print` or `printf`).
+
+1. Run `python microdaq.py` on the "master" computer.
+
+1. Open the settings and set baud rate and port if necessary.
+
+![GUI](img/gui_overview.png)
+
+1. Click the "play" button to plot. Click the "recording" button to save the data. The data will be saved to the default directory set in eth settings dialog. The file name will be made up of the current date and time. The file format will be plain text (space-separated if more than one column).
+
+### Example 1
+
+A light-dependent resistor (aka photoresistor) was connected to a Raspberry Pico (adc pin 26) in order to measure the relative intensity of ambient light. The micropython code was set to read and print the measured voltage every 500 ms:
 
 ```python
 from machine import ADC
@@ -24,13 +36,14 @@ while True:
     utime.sleep_ms(500)
 ```
 
-In this particular example, a photoresistor (a light-dependent resistor) was connected to Raspberry Pico (adc pin 26) in order to measure the relative intensity of ambient light.
-
-2. Run `python microdaq.py` on the "master" computer. Click the "play" button to plot the data from the microcontroller. In this example the y-axis units are volts (as established in the micropython code above when adc values are converted to voltage before printing):
+Running `python microdaq.py` on the "master" computer and clicking "play" button shows in real time the data from the microcontroller. In this example the y-axis units are volts (as established in the micropython code above when adc values are converted to voltage before printing).
 
 ![One signal](img/one_signal.png)
 
-3. More that one signal can be plotted simultaneously. Just set your microcontroller to print more than one value as needed. For example, to the Pico above one (analog) thermometer was connected to adc pin 28. The micropython code is now:
+
+### Example 2
+
+More that one signal can be plotted simultaneously by just setting the microcontroller to print more than one value as needed. In this example, one (analog) thermometer was connected (adc pin 28) to the same Raspberry Pico as above. The micropython code is now:
 
 ```python
 from machine import ADC
@@ -61,13 +74,37 @@ Running `microdaq` will detect and plot the two signals. In this figure, the top
 ![Two signals](img/two_signals.png)
 
 
+### Example 3
+
+To test on an Arduino, this code was loaded to an Arduino Uno. The two values created must be printed on the same line, separated by a space:
+```c
+void setup() {
+  Serial.begin(9600);
+}
+
+float value = 0;
+int direction = 1;
+const float interval = 0.1;
+
+void loop() {
+  Serial.print(value);
+  Serial.print(' ');
+  Serial.println(sin(value));
+  value += (interval * direction);
+  if ((value < -PI) | (value > PI)) {
+    direction *= -1;
+  }
+  delay(50); // in ms
+}
+```
+
+MicroDAQ plots the two signals in real time:
+
+![Arduino traces](img/arduino_traces.png)
+
+
 ## Requirements
 
 * [NumPy](https://numpy.org/)
 * [PyQtGraph](http://pyqtgraph.org/)
 * [pySerial](https://github.com/pyserial/)
-
-
-## Notes
-
-[1] The baud rate and serial port are hardcoded as global variables in the `microdaq.py` file. These default values work well for a Raspberry Pico connected to a master computer running Linux. You may need to adjust these parameters according to your needs.

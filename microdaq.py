@@ -3,16 +3,17 @@
 #
 # Copyright (c) 2021 Antonio González
 
-from PyQt5 import (QtCore, QtGui, QtWidgets)
 from datetime import datetime
 from itertools import count
-from serial import Serial, SerialException
-from serial.tools import list_ports
-import numpy as np
 import os
-import pyqtgraph as pg
 import sys
 import time
+
+import numpy as np
+from PyQt5 import (QtCore, QtGui, QtWidgets)
+import pyqtgraph as pg
+from serial import Serial, SerialException
+from serial.tools import list_ports
 
 from ui.ui_main import Ui_MainWindow
 from ui.ui_settings_dlg import Ui_Dialog
