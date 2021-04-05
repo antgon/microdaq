@@ -50,7 +50,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         # Connect to the microcontroller and wait for data
         self.statusbar.showMessage('Connecting to µC...')
-        self.serial = Serial(port=PORT, baudrate=BAUD, timeout=None)
+        try:
+            self.serial = Serial(port=PORT, baudrate=BAUD, timeout=None)
+        except SerialException as exc:
+            QtWidgets.QMessageBox.critical(self, "Serial error", exc.strerror)
+            return
+        
         time.sleep(0.1)
         #self.serial.reset_input_buffer()
 
