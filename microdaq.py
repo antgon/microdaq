@@ -128,8 +128,10 @@ class Settings:
     def __init__(self):
         self.baud = BAUD_DEFAULT
         self.save_path = os.path.expanduser("~")
+        self.port = ''
         self.scan_ports()
-        self.port = self.available_ports[0].device
+        if len(self.available_ports) > 0:
+            self.port = self.available_ports[0].device
 
     def scan_ports(self):
         self.available_ports = list_ports.comports()
