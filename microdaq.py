@@ -24,105 +24,48 @@ WIN_WIDTH_SAMPLES = 500
 
 # Serial parameters
 BAUD_DEFAULT = 115200
-#PORT_DEFAULT = "/dev/ttyACM0"
 BAUD_RATES = (460800, 115200, 57600, 38400, 19200, 14400, 9600)
-
-
-MAIN_NROWS = 3
-(BAUD, PORT, SAVE_PATH) = range(MAIN_NROWS)
 
 
 class SettingsDialog(QtWidgets.QDialog, Ui_Dialog):
     """
-    Data acquisition main window
+    Settings dialog
     """
     def __init__(self, settings, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.setupUi(self)
         self.settings = settings
-        #self._gui_refresh_rate = GUI_REFRESH_RATE
 
         # Baud
-        baud_rates = [str(baud) for baud in BAUD_RATES]
-        baud_model = QtCore.QStringListModel(baud_rates, self)
-        self.baudComboBox.setModel(baud_model)
+        for (index, baud) in zip(count(), BAUD_RATES):
+            self.baudComboBox.addItem(str(baud))
+            if baud == settings.baud:
+                self.baudComboBox.setCurrentIndex(index)
 
-        # Ports
-        ports_str = [port.device for port in self.settings.available_ports]
-        ports_model = QtCore.QStringListModel(ports_str, self)
-        self.portComboBox.setModel(ports_model)
+        # Port
+        for (index, port) in zip(count(), settings.available_ports):
+            port_str = f'{port.device} -- {port.manufacturer}'
+            self.portComboBox.addItem(port_str)
+            if port.device == self.settings.port:
+                self.portComboBox.setCurrentIndex(index)
 
-        # Default save path
-        self.savePathLabel.setText(self.settings.save_path)
+        # Path
+        self.savePathLabel.setText(settings.save_path)
 
-        # Setup model
-        main_settings_model = MainSettingsModel(self.settings)
-        mapper = QtWidgets.QDataWidgetMapper(self)
-        mapper.setOrientation(QtCore.Qt.Vertical)
-        mapper.setModel(main_settings_model)
-        mapper.addMapping(self.baudComboBox, BAUD)
-        mapper.addMapping(self.portComboBox, PORT)
-        mapper.addMapping(self.savePathLabel, SAVE_PATH)
-        mapper.toFirst()
+    @QtCore.pyqtSlot()
+    def on_portRefreshButton_clicked(self):
+        self.portComboBox.clear()
+        self.settings.scan_ports()
+        for port in self.settings.available_ports:
+            port_str = f'{port.device} -- {port.manufacturer}'
+            self.portComboBox.addItem(port_str)
 
     @QtCore.pyqtSlot()
     def on_savePathButton_clicked(self):
         path = QtWidgets.QFileDialog.getExistingDirectory(
             self, caption='Select default data directory')
         if path:
-            self.settings.save_path = path
             self.savePathLabel.setText(path)
-    
-    @QtCore.pyqtSlot()
-    def on_portRefreshButton_clicked(self):
-        self.settings.scan_ports()
-        ports_str = [port.device for port in self.settings.available_ports]
-        ports_model = QtCore.QStringListModel(ports_str, self)
-        self.portComboBox.setModel(ports_model)
-
-
-class MainSettingsModel(QtCore.QAbstractListModel):
-    def __init__(self, settings, parent=None):
-        super(MainSettingsModel, self).__init__(parent)
-        self.settings = settings
-
-    def rowCount(self, index=QtCore.QModelIndex()):
-        return MAIN_NROWS
-
-    def data(self, index, role=QtCore.Qt.DisplayRole):
-        row = index.row()
-
-        if role in (QtCore.Qt.DisplayRole, QtCore.Qt.EditRole):
-            if row == BAUD:
-                return QtCore.QVariant(self.settings.baud)
-            elif row == PORT:                
-                return QtCore.QVariant(self.settings.port)
-            elif row == SAVE_PATH:
-                return QtCore.QVariant(self.settings.save_path)
-        else:
-            return QtCore.QVariant()
-
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        if index.isValid():
-            row = index.row()
-            if row == BAUD:
-                self.settings.baud = int(value)
-            elif row == PORT:
-                self.settings.port = value
-            elif row == SAVE_PATH:
-                self.settings.save_path = value
-            self.dataChanged.emit(index, index, [])
-            return True
-        else:
-            return False
-
-    def flags(self, index):
-        if not index.isValid():
-            return QtCore.Qt.ItemIsEnabled
-        else:
-            return QtCore.Qt.ItemFlags(
-                QtCore.QAbstractListModel.flags(self, index) |
-                QtCore.Qt.ItemIsEditable)
 
 
 class Settings:
@@ -131,6 +74,7 @@ class Settings:
         self.save_path = os.path.expanduser("~")
         self.port = ''
         self.scan_ports()
+        # Set as default the first port in the list (ifa any)
         if len(self.available_ports) > 0:
             self.port = self.available_ports[0].device
 
@@ -177,8 +121,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     @QtCore.pyqtSlot()
     def on_settingsButton_clicked(self):
         dialog = SettingsDialog(self.settings, parent=self)
-        self.W = dialog
-        dialog.exec_()
+        ok = dialog.exec_()
+        if ok:
+            self.settings.baud = int(dialog.baudComboBox.currentText())
+            port_index = dialog.portComboBox.currentIndex()
+            port = self.settings.available_ports[port_index]
+            self.settings.port = port.device
+            self.settings.save_path = dialog.savePathLabel.text()
 
     def start(self, retry=3):
         """
