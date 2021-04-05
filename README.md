@@ -12,9 +12,11 @@ Read and plot serial data from a microcontroller.
 
 1. Open the settings and set baud rate and port if necessary.
 
-![GUI](img/gui_overview.png)
+1. Click the "play" button to display the data.
 
-1. Click the "play" button to plot. Click the "recording" button to save the data. The data will be saved to the default directory set in eth settings dialog. The file name will be made up of the current date and time. The file format will be plain text (space-separated if more than one column).
+1. Click the "recording" button to save the data to the default directory (as set in the settings dialog). The file name will be made up of the current date and time. The file format will be plain text (space-separated if more than one column).
+
+![GUI](img/gui_overview.png)
 
 ### Example 1
 
@@ -36,14 +38,14 @@ while True:
     utime.sleep_ms(500)
 ```
 
-Running `python microdaq.py` on the "master" computer and clicking "play" button shows in real time the data from the microcontroller. In this example the y-axis units are volts (as established in the micropython code above when adc values are converted to voltage before printing).
+Running `python microdaq.py` on the "master" computer and clicking "play" button shows in real time the data. In this example the y-axis units are volts (as established in the micropython code above when adc values are converted to voltage before printing).
 
 ![One signal](img/one_signal.png)
 
 
 ### Example 2
 
-More that one signal can be plotted simultaneously by just setting the microcontroller to print more than one value as needed. In this example, one (analog) thermometer was connected (adc pin 28) to the same Raspberry Pico as above. The micropython code is now:
+More that one signal can be plotted simultaneously by just setting the microcontroller to print more than one value as needed. In this example, one (analog) thermometer was connected to adc pin 28 in the same Raspberry Pico as above. The micropython code is now:
 
 ```python
 from machine import ADC
@@ -76,7 +78,7 @@ Running `microdaq` will detect and plot the two signals. In this figure, the top
 
 ### Example 3
 
-To test on an Arduino, this code was loaded to an Arduino Uno. The two values created must be printed on the same line, separated by a space:
+To test on an Arduino, the following code was uploaded to an Arduino Uno. The two values created must be printed on the same line, separated by a space:
 ```c
 void setup() {
   Serial.begin(9600);
@@ -87,9 +89,9 @@ int direction = 1;
 const float interval = 0.1;
 
 void loop() {
-  Serial.print(value);
-  Serial.print(' ');
-  Serial.println(sin(value));
+  Serial.print(value);  // Print the first value
+  Serial.print(' ');  // Print a space to separate the values
+  Serial.println(sin(value));  // Print the second value and end the line
   value += (interval * direction);
   if ((value < -PI) | (value > PI)) {
     direction *= -1;
@@ -98,7 +100,7 @@ void loop() {
 }
 ```
 
-MicroDAQ plots the two signals in real time:
+After setting the correct baud rate and serial port in the settings dialog MicroDAQ plots the two "signals" in real time:
 
 ![Arduino traces](img/arduino_traces.png)
 
