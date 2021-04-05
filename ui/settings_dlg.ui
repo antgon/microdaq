@@ -75,7 +75,7 @@
        <item>
         <widget class="QPushButton" name="portRefreshButton">
          <property name="toolTip">
-          <string>Re-scan serial ports</string>
+          <string>Scan serial ports</string>
          </property>
          <property name="text">
           <string/>

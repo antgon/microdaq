@@ -91,7 +91,7 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "Settings"))
         self.label.setText(_translate("Dialog", "<html><head/><body><p><span style=\" font-weight:600;\">Baud</span></p></body></html>"))
         self.label_2.setText(_translate("Dialog", "<html><head/><body><p><span style=\" font-weight:600;\">Port</span></p></body></html>"))
-        self.portRefreshButton.setToolTip(_translate("Dialog", "Re-scan serial ports"))
+        self.portRefreshButton.setToolTip(_translate("Dialog", "Scan serial ports"))
         self.label_3.setText(_translate("Dialog", "<html><head/><body><p><span style=\" font-weight:600;\">Save path</span></p></body></html>"))
         self.savePathLabel.setText(_translate("Dialog", "[path]"))
         self.savePathButton.setToolTip(_translate("Dialog", "Choose a path for saving data"))
