@@ -4,10 +4,13 @@
 # Copyright (c) 2021 Antonio González
 
 from PyQt5 import (QtCore, QtGui, QtWidgets)
+from datetime import datetime
 from itertools import count
 from serial import Serial, SerialException
 import numpy as np
+import os
 import pyqtgraph as pg
+import sys
 import time
 
 from ui.ui_main import Ui_MainWindow
@@ -42,7 +45,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     
     @QtCore.pyqtSlot()
     def on_stopButton_clicked(self):
-        self.stop()        
+        self.stop()
+
+    @QtCore.pyqtSlot(bool)
+    def on_recButton_toggled(self, toggled):
+        if toggled:
+            self.start_recording()
+        else:
+            self.stop_recording()
 
     def start(self, retry=3):
         """
@@ -91,6 +101,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.statusbar.clearMessage()
         self.playButton.setEnabled(False)
         self.stopButton.setEnabled(True)
+        self.recButton.setEnabled(True)
     
     def stop(self):
         """
@@ -104,9 +115,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if hasattr(self, 'serial'):
             self.serial.close()
 
+        if self.recButton.isChecked():
+            self.recButton.toggle()
+
         # Reset buttons
         self.playButton.setEnabled(True)
         self.stopButton.setEnabled(False)
+        self.recButton.setEnabled(False)
+
+    def start_recording(self):
+        now = datetime.today()
+        home = os.path.expanduser('~') 
+        filename = '{:%Y-%m-%d_%H_%M_%S}.tab'.format(now)
+        path = os.path.join(home,filename)
+        self._outfile = open(path, 'w')
+        self.statusbar.showMessage(f"Recording to {path}")
+
+    def stop_recording(self):
+        self._outfile.close()
+        self.statusbar.clearMessage()
 
     def update(self):
         """
@@ -117,10 +144,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         if self.serial.in_waiting > 10:
             try:
-                this_data = self.serial.readlines(self.serial.in_waiting)
-                this_data = [line.decode().split() for line in this_data]
-                this_data = np.array(this_data).astype('float')
+                this_data = self.serial.readlines(self.serial.in_waiting)             
 
+                for (index, line) in zip(count(), this_data):
+                    line = line.decode()
+                    if self.recButton.isChecked():
+                        self._outfile.writelines(line)
+                        self._outfile.flush()
+                    this_data[index] = line.split()
+                this_data = np.array(this_data).astype('float')
                 for (index, samples) in zip(count(), this_data.T):
                     self.data[index].extend(samples)
                     self.curves[index].setData(self.data[index])
@@ -196,7 +228,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.timer.start(self._gui_refresh_rate)
 
 if __name__ == "__main__":
-    import sys
     app = QtWidgets.QApplication([])
     self = MainWindow()
     self.show()
