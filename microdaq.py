@@ -7,6 +7,7 @@ from PyQt5 import (QtCore, QtGui, QtWidgets)
 from datetime import datetime
 from itertools import count
 from serial import Serial, SerialException
+from serial.tools import list_ports
 import numpy as np
 import os
 import pyqtgraph as pg
@@ -14,14 +15,129 @@ import sys
 import time
 
 from ui.ui_main import Ui_MainWindow
+from ui.ui_settings_dlg import Ui_Dialog
 
 # GUI parameters
 GUI_REFRESH_RATE = 100 #  In milliseconds
 WIN_WIDTH_SAMPLES = 500
 
 # Serial parameters
-BAUD = 115200
-PORT = "/dev/ttyACM0"
+BAUD_DEFAULT = 115200
+#PORT_DEFAULT = "/dev/ttyACM0"
+BAUD_RATES = (460800, 115200, 57600, 38400, 19200, 14400, 9600)
+
+
+MAIN_NROWS = 3
+(BAUD, PORT, SAVE_PATH) = range(MAIN_NROWS)
+
+
+class SettingsDialog(QtWidgets.QDialog, Ui_Dialog):
+    """
+    Data acquisition main window
+    """
+    def __init__(self, settings, parent=None):
+        QtWidgets.QWidget.__init__(self, parent)
+        self.setupUi(self)
+        self.settings = settings
+        #self._gui_refresh_rate = GUI_REFRESH_RATE
+
+        # Baud
+        baud_rates = [str(baud) for baud in BAUD_RATES]
+        baud_model = QtCore.QStringListModel(baud_rates, self)
+        self.baudComboBox.setModel(baud_model)
+
+        # Ports
+        ports_str = [port.device for port in self.settings.available_ports]
+        ports_model = QtCore.QStringListModel(ports_str, self)
+        self.portComboBox.setModel(ports_model)
+
+        # Default save path
+        self.savePathLabel.setText(self.settings.save_path)
+
+        # Setup model
+        main_settings_model = MainSettingsModel(self.settings)
+        mapper = QtWidgets.QDataWidgetMapper(self)
+        mapper.setOrientation(QtCore.Qt.Vertical)
+        mapper.setModel(main_settings_model)
+        mapper.addMapping(self.baudComboBox, BAUD)
+        mapper.addMapping(self.portComboBox, PORT)
+        mapper.addMapping(self.savePathLabel, SAVE_PATH)
+        mapper.toFirst()
+
+    @QtCore.pyqtSlot()
+    def on_savePathButton_clicked(self):
+        path = QtWidgets.QFileDialog.getExistingDirectory(
+            self, caption='Select default data directory')
+        if path:
+            self.settings.save_path = path
+            self.savePathLabel.setText(path)
+    
+    @QtCore.pyqtSlot()
+    def on_portRefreshButton_clicked(self):
+        self.settings.scan_ports()
+        ports_str = [port.device for port in self.settings.available_ports]
+        ports_model = QtCore.QStringListModel(ports_str, self)
+        self.portComboBox.setModel(ports_model)
+
+
+class MainSettingsModel(QtCore.QAbstractListModel):
+    def __init__(self, settings, parent=None):
+        super(MainSettingsModel, self).__init__(parent)
+        self.settings = settings
+
+    def rowCount(self, index=QtCore.QModelIndex()):
+        return MAIN_NROWS
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        row = index.row()
+
+        if role in (QtCore.Qt.DisplayRole, QtCore.Qt.EditRole):
+            if row == BAUD:
+                return QtCore.QVariant(self.settings.baud)
+            elif row == PORT:                
+                return QtCore.QVariant(self.settings.port)
+            elif row == SAVE_PATH:
+                return QtCore.QVariant(self.settings.save_path)
+        else:
+            return QtCore.QVariant()
+
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        if index.isValid():
+            row = index.row()
+            if row == BAUD:
+                self.settings.baud = int(value)
+            elif row == PORT:
+                self.settings.port = value
+            elif row == SAVE_PATH:
+                self.settings.save_path = value
+            self.dataChanged.emit(index, index, [])
+            return True
+        else:
+            return False
+
+    def flags(self, index):
+        if not index.isValid():
+            return QtCore.Qt.ItemIsEnabled
+        else:
+            return QtCore.Qt.ItemFlags(
+                QtCore.QAbstractListModel.flags(self, index) |
+                QtCore.Qt.ItemIsEditable)
+
+
+class Settings:
+    def __init__(self):
+        self.baud = BAUD_DEFAULT
+        self.save_path = os.path.expanduser("~")
+        self.scan_ports()
+        self.port = self.available_ports[0].device
+
+    def scan_ports(self):
+        self.available_ports = list_ports.comports()
+        for port in self.available_ports:
+            if port.manufacturer is None:
+                self.available_ports.remove(port)
+        self.available_ports.sort()
+
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     """
@@ -33,6 +149,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._gui_refresh_rate = GUI_REFRESH_RATE
         self.playButton.setEnabled(True)
         self.stopButton.setEnabled(False)
+        self.settings = Settings()
 
     @QtCore.pyqtSlot()
     def on_quitButton_clicked(self):
@@ -53,6 +170,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.start_recording()
         else:
             self.stop_recording()
+    
+    @QtCore.pyqtSlot()
+    def on_settingsButton_clicked(self):
+        dialog = SettingsDialog(self.settings, parent=self)
+        self.W = dialog
+        dialog.exec_()
 
     def start(self, retry=3):
         """
@@ -61,14 +184,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Connect to the microcontroller and wait for data
         self.statusbar.showMessage('Connecting to µC...')
         try:
-            self.serial = Serial(port=PORT, baudrate=BAUD, timeout=None)
+            self.serial = Serial(port=self.settings.port,
+                                 baudrate=self.settings.baud,
+                                 timeout=None)
         except SerialException as exc:
             self.statusbar.showMessage("Serial error")
             QtWidgets.QMessageBox.critical(self, "Serial error", exc.strerror)
             return
         
         time.sleep(0.1)
-        #self.serial.reset_input_buffer()
+        self.serial.reset_input_buffer()
 
         retries = 0
         self.statusbar.showMessage("Waiting for data...")
@@ -102,6 +227,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.playButton.setEnabled(False)
         self.stopButton.setEnabled(True)
         self.recButton.setEnabled(True)
+        self.settingsButton.setEnabled(False)
     
     def stop(self):
         """
@@ -122,12 +248,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.playButton.setEnabled(True)
         self.stopButton.setEnabled(False)
         self.recButton.setEnabled(False)
+        self.settingsButton.setEnabled(True)
 
     def start_recording(self):
         now = datetime.today()
-        home = os.path.expanduser('~') 
         filename = '{:%Y-%m-%d_%H_%M_%S}.tab'.format(now)
-        path = os.path.join(home,filename)
+        path = os.path.join(self.settings.save_path,filename)
         self._outfile = open(path, 'w')
         self.statusbar.showMessage(f"Recording to {path}")
 
