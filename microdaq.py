@@ -53,6 +53,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             self.serial = Serial(port=PORT, baudrate=BAUD, timeout=None)
         except SerialException as exc:
+            self.statusbar.showMessage("Serial error")
             QtWidgets.QMessageBox.critical(self, "Serial error", exc.strerror)
             return
         
