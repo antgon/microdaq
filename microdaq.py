@@ -52,6 +52,9 @@ class SettingsDialog(QtWidgets.QDialog, Ui_Dialog):
         # Path
         self.savePathLabel.setText(settings.save_path)
 
+        # Window width
+        self.widthSpinBox.setValue(settings.width)
+
     @QtCore.pyqtSlot()
     def on_portRefreshButton_clicked(self):
         self.portComboBox.clear()
@@ -71,6 +74,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_Dialog):
 class Settings:
     def __init__(self):
         self.baud = BAUD_DEFAULT
+        self.width = WIN_WIDTH_SAMPLES
         self.save_path = os.path.expanduser("~")
         self.port = ''
         self.scan_ports()
@@ -128,6 +132,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             port = self.settings.available_ports[port_index]
             self.settings.port = port.device
             self.settings.save_path = dialog.savePathLabel.text()
+            self.settings.width = dialog.widthSpinBox.value()
 
     def start(self, retry=3):
         """
@@ -169,7 +174,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.data = []
         from collections import deque
         for _ in range(nsignals):
-            self.data.append(deque([], maxlen=WIN_WIDTH_SAMPLES))
+            self.data.append(deque([], maxlen=self.settings.width))
 
         # Set up plots
         self.setup_plot(nsignals)
@@ -284,7 +289,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             curve = plot.plot(pen=curve_colour)
             self.plots.append(plot)
             self.curves.append(curve)
-            plot.setXRange(0, WIN_WIDTH_SAMPLES)
+            plot.setXRange(0, self.settings.width)
 
         # Link x-axis from all plots to that of the last one.
         for plot in self.plots[:-1]:
@@ -301,9 +306,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.update_y_labels()
 
         # Update plot at regular intervals.
-        # self.timer = QtCore.QTimer()
-        # self.timer.timeout.connect(self.update)
-        # self.timer.start(self._gui_refresh_rate)
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.update)
+        self.timer.start(self._gui_refresh_rate)
 
 
 if __name__ == "__main__":
