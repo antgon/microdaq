@@ -24,7 +24,10 @@ WIN_WIDTH_SAMPLES = 500
 
 # Serial parameters
 BAUD_DEFAULT = 115200
-BAUD_RATES = (460800, 115200, 57600, 38400, 19200, 14400, 9600)
+# This is a subset of the standard baud rates supported by all
+# platforms
+# (https://pythonhosted.org/pyserial/pyserial_api.html#serial.Serial
+BAUD_RATES = (9600, 19200, 38400, 57600, 115200)
 
 
 class SettingsDialog(QtWidgets.QDialog, Ui_Dialog):
@@ -333,11 +336,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Add labels to y axis
         # self.update_y_labels()
-
-        # Update plot at regular intervals.
-        #self.timer = QtCore.QTimer()
-        #self.timer.timeout.connect(self.update)
-        #self.timer.start(self._gui_refresh_rate)
 
 
 if __name__ == "__main__":
