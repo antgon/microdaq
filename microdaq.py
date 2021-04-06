@@ -102,6 +102,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stopButton.setEnabled(False)
         self.settings = Settings()
 
+        # Create a timer to update plot at regular intervals
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.update)
+
     @QtCore.pyqtSlot()
     def on_quitButton_clicked(self):
         self.stop()
@@ -179,7 +183,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Set up plots
         self.setup_plot(nsignals)
 
-        # self.x = deque(np.arange(data_len), maxlen=data_len)
+        # Start the timer
+        self.timer.start(self._gui_refresh_rate)
+
+        # Update gui
         self.statusbar.clearMessage()
         self.playButton.setEnabled(False)
         self.stopButton.setEnabled(True)
@@ -191,8 +198,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Stop reading serial data.
         """
         # Stop data acquisition.
-        if hasattr(self, 'timer'):
-            self.timer.stop()
+        self.timer.stop()
 
         # Close serial connection
         if hasattr(self, 'serial'):
@@ -306,9 +312,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.update_y_labels()
 
         # Update plot at regular intervals.
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.update)
-        self.timer.start(self._gui_refresh_rate)
+        #self.timer = QtCore.QTimer()
+        #self.timer.timeout.connect(self.update)
+        #self.timer.start(self._gui_refresh_rate)
 
 
 if __name__ == "__main__":
