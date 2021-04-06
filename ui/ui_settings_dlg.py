@@ -119,9 +119,12 @@ class Ui_Dialog(object):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Settings"))
         self.label.setText(_translate("Dialog", "Baud"))
+        self.baudComboBox.setToolTip(_translate("Dialog", "Baud rate"))
         self.label_2.setText(_translate("Dialog", "Port"))
+        self.portComboBox.setToolTip(_translate("Dialog", "Serial port(s) available"))
         self.portRefreshButton.setToolTip(_translate("Dialog", "Scan serial ports"))
         self.label_3.setText(_translate("Dialog", "Save path"))
+        self.savePathLabel.setToolTip(_translate("Dialog", "Path for saving data"))
         self.savePathLabel.setText(_translate("Dialog", "[path]"))
         self.savePathButton.setToolTip(_translate("Dialog", "Choose a path for saving data"))
         self.savePathButton.setText(_translate("Dialog", "..."))
