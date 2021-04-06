@@ -172,6 +172,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # this line will not have an end-of-line character, and that can
         # be used to alert the user. (I do not know if this will always
         # work out though.)
+        #
+        # Note that, according to pySerial documentation
+        # (https://pythonhosted.org/pyserial/shortintro.html#readline),
+        # an exception should be raised if readline() does not find an
+        # end-of-line when a timeout is set. However, that does not work
+        # for me: even with a timeout, readline() blocks forever when
+        # the wrong baud rate is set (and thus no eol is found). These
+        # lines seem to do a good job at circumventing that issue.
         self.serial.timeout = 0
         line = self.serial.readline(30)
         if not line.endswith(b'\n'):
