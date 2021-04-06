@@ -120,8 +120,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stop()
 
     @QtCore.pyqtSlot(bool)
-    def on_recButton_toggled(self, toggled):
-        if toggled:
+    def on_recButton_toggled(self, checked):
+        if checked:
             self.start_recording()
         else:
             self.stop_recording()
@@ -149,30 +149,44 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                  baudrate=self.settings.baud,
                                  timeout=None)
         except SerialException as exc:
+            self.stop()
             self.statusbar.showMessage("Serial error")
-            QtWidgets.QMessageBox.critical(self, "Serial error", exc.strerror)
+            QtWidgets.QMessageBox.critical(self, "Serial error",
+                                           exc.strerror)
             return
-
         time.sleep(0.1)
-        self.serial.reset_input_buffer()
 
         retries = 0
         self.statusbar.showMessage("Waiting for data...")
-        while self.serial.in_waiting == 0:
+        self.serial.reset_input_buffer()
+        while self.serial.in_waiting < 30:
             if retries == retry:
                 msg = "No serial data received."
                 self.stop()
-                self.statusbar.clearMessage()
                 QtWidgets.QMessageBox.information(self, "Notice", msg)
                 return
             retries += 1
             time.sleep(1)
 
-        # Find out how many values per line there are in the serial
-        # datafrom reading the first line
-        line = self.serial.readline()
+        # Read the first line of data. When the wrong baud rate is set
+        # this line will not have an end-of-line character, and that can
+        # be used to alert the user. (I do not know if this will always
+        # work out though.)
+        self.serial.timeout = 0
+        line = self.serial.readline(30)
+        if not line.endswith(b'\n'):
+            self.stop()
+            msg = ("The serial stream is not as expected.\n" +
+                   "Perhaps the wrong baud rate was set?")
+            QtWidgets.QMessageBox.critical(self, "Serial error", msg)
+            return
+
+        # If the first line was successfully read, this can be used to
+        # find out how many values per line (i.e. signals) there are in
+        # the data.
         line = line.decode().split()
         nsignals = len(line)
+        self.serial.timeout = None
 
         # Initialise data container
         self.data = []
@@ -207,7 +221,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.recButton.isChecked():
             self.recButton.toggle()
 
-        # Reset buttons
+        # Reset gui
+        self.statusbar.clearMessage()
         self.playButton.setEnabled(True)
         self.stopButton.setEnabled(False)
         self.recButton.setEnabled(False)
