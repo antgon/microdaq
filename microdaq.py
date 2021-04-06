@@ -19,7 +19,7 @@ from ui.ui_main import Ui_MainWindow
 from ui.ui_settings_dlg import Ui_Dialog
 
 # GUI parameters
-GUI_REFRESH_RATE = 100 #  In milliseconds
+GUI_REFRESH_RATE = 100  # In milliseconds
 WIN_WIDTH_SAMPLES = 500
 
 # Serial parameters
@@ -106,7 +106,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     @QtCore.pyqtSlot()
     def on_playButton_clicked(self):
         self.start()
-    
+
     @QtCore.pyqtSlot()
     def on_stopButton_clicked(self):
         self.stop()
@@ -117,7 +117,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.start_recording()
         else:
             self.stop_recording()
-    
+
     @QtCore.pyqtSlot()
     def on_settingsButton_clicked(self):
         dialog = SettingsDialog(self.settings, parent=self)
@@ -143,7 +143,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage("Serial error")
             QtWidgets.QMessageBox.critical(self, "Serial error", exc.strerror)
             return
-        
+
         time.sleep(0.1)
         self.serial.reset_input_buffer()
 
@@ -164,7 +164,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         line = self.serial.readline()
         line = line.decode().split()
         nsignals = len(line)
-        
+
         # Initialise data container
         self.data = []
         from collections import deque
@@ -174,13 +174,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Set up plots
         self.setup_plot(nsignals)
 
-        #self.x = deque(np.arange(data_len), maxlen=data_len)
+        # self.x = deque(np.arange(data_len), maxlen=data_len)
         self.statusbar.clearMessage()
         self.playButton.setEnabled(False)
         self.stopButton.setEnabled(True)
         self.recButton.setEnabled(True)
         self.settingsButton.setEnabled(False)
-    
+
     def stop(self):
         """
         Stop reading serial data.
@@ -188,7 +188,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Stop data acquisition.
         if hasattr(self, 'timer'):
             self.timer.stop()
-        
+
         # Close serial connection
         if hasattr(self, 'serial'):
             self.serial.close()
@@ -205,7 +205,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def start_recording(self):
         now = datetime.today()
         filename = '{:%Y-%m-%d_%H_%M_%S}.tab'.format(now)
-        path = os.path.join(self.settings.save_path,filename)
+        path = os.path.join(self.settings.save_path, filename)
         self._outfile = open(path, 'w')
         self.statusbar.showMessage(f"Recording to {path}")
 
@@ -222,7 +222,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         if self.serial.in_waiting > 10:
             try:
-                this_data = self.serial.readlines(self.serial.in_waiting)             
+                this_data = self.serial.readlines(self.serial.in_waiting)
 
                 for (index, line) in zip(count(), this_data):
                     line = line.decode()
@@ -237,8 +237,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             except ValueError as error:
                 print(error)
-                #sys.exit()
-        
+                # sys.exit()
+
     def setup_plot(self, nsignals):
         # title_fontsize = 10
         x_tick_fontsize = 10
@@ -286,24 +286,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.curves.append(curve)
             plot.setXRange(0, WIN_WIDTH_SAMPLES)
 
-        ## Link x-axis from all plots to that of the last one.
+        # Link x-axis from all plots to that of the last one.
         for plot in self.plots[:-1]:
             plot.setXLink(self.plots[-1])
 
-        ## Show the x-axis and the x-label in the last plot.
-        #last_plot = self.plots[-1]
-        #xaxis = last_plot.axes['bottom']['item']
-        #xaxis.setStyle(showValues=True)
-        #xaxis.setTickFont(yfont)
-        #last_plot.setLabel('bottom', 'Time', units='s', size=10)
+        #  Show the x-axis and the x-label in the last plot.
+        # last_plot = self.plots[-1]
+        # xaxis = last_plot.axes['bottom']['item']
+        # xaxis.setStyle(showValues=True)
+        # xaxis.setTickFont(yfont)
+        # last_plot.setLabel('bottom', 'Time', units='s', size=10)
 
-        ## Add labels to y axis
-        #self.update_y_labels()
+        # Add labels to y axis
+        # self.update_y_labels()
 
-        ## Update plot at regular intervals.
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.update)
-        self.timer.start(self._gui_refresh_rate)
+        # Update plot at regular intervals.
+        # self.timer = QtCore.QTimer()
+        # self.timer.timeout.connect(self.update)
+        # self.timer.start(self._gui_refresh_rate)
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
