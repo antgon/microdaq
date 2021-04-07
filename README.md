@@ -9,6 +9,18 @@ port `print`ed line-by-line by the microcontroller, but it helps to
 quickly evaluate microcontroller-acquired data values with minimal
 effort.
 
+***
+
+## Contents
+
+1. [Usage](#usage)
+    1. [Example 1](#example-1)
+    1. [Example 2](#example-2)
+    1. [Example 3](#example-3)
+2. [Requirements](#requirements)
+
+***
+
 ## Usage
 
 1. Connect your microcontroller to the "master" computer. Set up the
