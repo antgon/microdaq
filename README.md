@@ -5,24 +5,31 @@ Read and plot serial data from a microcontroller
 ***
 
 1. [Description](#description)
+1. [Requirements](#requirements)
 1. [Usage](#usage)
     1. [Example 1: Plot analog data](#example-1-Sample-analog-data-and-plot-in-real-time)
     1. [Example 2: Plot more than one signal](#example-2-plot-more-than-one-signal)
     1. [Example 3: Using with Arduino](#example-3-using-with-arduino)
     1. [Example 4: Plotting *x* vs *y*](#example-4-plotting-x-vs-y)
     1. [The Settings dialog](#settings)
-2. [Requirements](#requirements)
 
 ***
 
 ## Description
 
-`microdaq` displays serial data in real time. It is intended as a simple
+MicroDAQ displays serial data in real time. It is intended as a simple
 way to plot data from a microcontroller. It is not very efficient in the
-way resources are used, as it repeatedly reads ascii from the serial
-port `print`ed line-by-line by the microcontroller, but it helps to
-quickly evaluate microcontroller-acquired data values with minimal
+way resources are used, as it just repeatedly reads ascii from the
+serial port `print`ed line-by-line by the microcontroller, but it helps
+to quickly evaluate microcontroller-acquired data values with minimal
 effort.
+
+
+## Requirements
+
+* [NumPy](https://numpy.org/)
+* [PyQtGraph](http://pyqtgraph.org/)
+* [pySerial](https://github.com/pyserial/)
 
 
 ## Usage
@@ -184,7 +191,7 @@ MicroDAQ will plot both sets of data -- timer (in ms) and temperature (in deg C)
 
 But this is not what we want here: we want the first signal to be used
 as *x* values. That is achieved by opening the Settings dialog and
-checking *First signal is time* under [Plot settings](#plot-settings). Now the temperature is plotted against time (in seconds):
+checking *First signal is time* under [Plot settings](#plot-settings). Now the temperature is plotted against time:
 
 ![](img/x-y-after-setting.png)
 
@@ -207,18 +214,14 @@ named according to their date and time of creation.
 #### Plot settings
 
 *Window width* sets the width of the plot in number of samples; i.e. a
-window width of 500 means that the last 500 samples will be displayed in
-real time. Values older than that are discarded from the view.
+window width of 500 means that the most recent 500 samples will be
+displayed in real time. Values older than that are discarded from the
+view.
 
 *Line colour* opens a colour selection dialog to choose the colour of
 the plotted curve(s).
 
-*First signal is time*, if checked, the first signal in the data
-will not be plotted. Instead, this will be taken to be *x* and thus used to plot the rest of the data samples against these values; see [Example 4](#example-4:-plotting-*x*-vs-*y*).
-
-
-## Requirements
-
-* [NumPy](https://numpy.org/)
-* [PyQtGraph](http://pyqtgraph.org/)
-* [pySerial](https://github.com/pyserial/)
+*First signal is time*, if checked, the first signal in the data will
+not be plotted. Instead, this will be taken to be *x* and thus used to
+plot the rest of the data samples against these values; see [Example
+4](#example-4-plotting-x-vs-y).
