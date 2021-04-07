@@ -3,6 +3,7 @@
 #
 # Copyright (c) 2021 Antonio González
 
+from collections import deque
 from datetime import datetime
 from itertools import count
 import os
@@ -55,8 +56,9 @@ class SettingsDialog(QtWidgets.QDialog, Ui_Dialog):
         # Path
         self.savePathLabel.setText(settings.save_path)
 
-        # Window width
+        # UI settings
         self.widthSpinBox.setValue(settings.width)
+        self.firstIsXcheckBox.setChecked(settings.first_is_x)
 
     @QtCore.pyqtSlot()
     def on_portRefreshButton_clicked(self):
@@ -81,7 +83,8 @@ class Settings:
         self.save_path = os.path.expanduser("~")
         self.port = ''
         self.scan_ports()
-        # Set as default the first port in the list (ifa any)
+        self.first_is_x = False
+        # Set as default the first port in the list (if any)
         if len(self.available_ports) > 0:
             self.port = self.available_ports[0].device
 
@@ -105,7 +108,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stopButton.setEnabled(False)
         self.settings = Settings()
 
-        # Create a timer to update plot at regular intervals
+        # Create a timer to update the plot at regular intervals
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update)
 
@@ -140,6 +143,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.settings.port = port.device
             self.settings.save_path = dialog.savePathLabel.text()
             self.settings.width = dialog.widthSpinBox.value()
+            self.settings.first_is_x = dialog.firstIsXcheckBox.isChecked()
 
     def start(self, retry=3):
         """
@@ -196,19 +200,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # find out how many values per line (i.e. signals) there are in
         # the data.
         line = line.decode().split()
-        nsignals = len(line)
-        self.serial.timeout = None
 
-        # Initialise data container
+        # Initialise data containers.
+        if self.settings.first_is_x:
+            nsignals = len(line)-1
+            # First time value, convert from ms to s.
+            self._x0 = float(line[0])/1000
+        else:
+            nsignals = len(line)
+            self._x0 = 0
         self.data = []
-        from collections import deque
-        for _ in range(nsignals):
+
+        # The first set of values in data is values of x. The following
+        # sets are each of the signals.
+        for _ in range(nsignals+1):
             self.data.append(deque([], maxlen=self.settings.width))
 
         # Set up plots
         self.setup_plot(nsignals)
 
         # Start the timer
+        self.serial.timeout = None
         self.timer.start(self._gui_refresh_rate)
 
         # Update gui
@@ -260,20 +272,41 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.serial.in_waiting > 10:
             try:
                 this_data = self.serial.readlines(self.serial.in_waiting)
-
-                for (index, line) in zip(count(), this_data):
+                for line in this_data:
                     line = line.decode()
+
+                    # Write data to file if requested.
                     if self.recButton.isChecked():
                         self._outfile.writelines(line)
                         self._outfile.flush()
-                    this_data[index] = line.split()
-                this_data = np.array(this_data).astype('float')
-                for (index, samples) in zip(count(), this_data.T):
-                    self.data[index].extend(samples)
-                    self.curves[index].setData(self.data[index])
+
+                    # Push the data values in to the data queues. The
+                    # first data queue is x. This can be time values
+                    # read from the serial input or the index of the
+                    # sample.
+                    if self.settings.first_is_x:
+                        for (index, val) in zip(count(), line.split()):
+                            val = float(val)
+                            if index == 0:
+                                # Convert from ms to s, then substract
+                                # first time value so that sampling
+                                # always starts at time 0.
+                                val = (val/1000) - self._x0
+                            self.data[index].append(val)
+                    else:
+                        for (index, val) in zip(count(), line.split()):
+                            if index == 0:
+                                self.data[0].append(self._x0)
+                                self._x0 += 1
+                            self.data[index+1].append(float(val))
+
+                # Plot the data. First data queue is x.
+                for (index, samples) in zip(count(), self.data[1:]):
+                    self.curves[index].setData(self.data[0], samples)
 
             except ValueError as error:
                 print(error)
+                self.timer.stop()
                 # sys.exit()
 
     def setup_plot(self, nsignals):
@@ -321,18 +354,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             curve = plot.plot(pen=curve_colour)
             self.plots.append(plot)
             self.curves.append(curve)
-            plot.setXRange(0, self.settings.width)
+            # plot.setXRange(0, self.settings.width)
+
+            # An empty label help to add some space between the plots.
+            # Otherwise the last plot is shorter than the rest.
+            plot.setLabel('bottom', ' ', size=10)
 
         # Link x-axis from all plots to that of the last one.
         for plot in self.plots[:-1]:
             plot.setXLink(self.plots[-1])
 
         #  Show the x-axis and the x-label in the last plot.
-        # last_plot = self.plots[-1]
-        # xaxis = last_plot.axes['bottom']['item']
-        # xaxis.setStyle(showValues=True)
-        # xaxis.setTickFont(yfont)
-        # last_plot.setLabel('bottom', 'Time', units='s', size=10)
+        last_plot = self.plots[-1]
+        xaxis = last_plot.axes['bottom']['item']
+        xaxis.setStyle(showValues=True)
+        xaxis.setTickFont(yfont)
+        if self.settings.first_is_x:
+            last_plot.setLabel('bottom', 'Time', units='s', size=10)
+        else:
+            last_plot.setLabel('bottom', 'Samples', units='index',
+                               size=10)
 
         # Add labels to y axis
         # self.update_y_labels()

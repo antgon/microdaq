@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(300, 358)
+        Dialog.resize(300, 374)
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
         self.verticalLayout = QtWidgets.QVBoxLayout()
@@ -102,6 +102,9 @@ class Ui_Dialog(object):
         self.horizontalLayout_4.addItem(spacerItem1)
         self.verticalLayout_4.addLayout(self.horizontalLayout_4)
         self.verticalLayout_5.addLayout(self.verticalLayout_4)
+        self.firstIsXcheckBox = QtWidgets.QCheckBox(Dialog)
+        self.firstIsXcheckBox.setObjectName("firstIsXcheckBox")
+        self.verticalLayout_5.addWidget(self.firstIsXcheckBox)
         spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_5.addItem(spacerItem2)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
@@ -130,3 +133,5 @@ class Ui_Dialog(object):
         self.savePathButton.setText(_translate("Dialog", "..."))
         self.label_4.setText(_translate("Dialog", "Window width"))
         self.widthSpinBox.setToolTip(_translate("Dialog", "Window width in number of samples"))
+        self.firstIsXcheckBox.setToolTip(_translate("Dialog", "The first input value is time in milliseconds"))
+        self.firstIsXcheckBox.setText(_translate("Dialog", "First value is time (in ms)"))

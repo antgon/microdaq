@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>300</width>
-    <height>358</height>
+    <height>374</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -187,6 +187,16 @@
       </layout>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="firstIsXcheckBox">
+     <property name="toolTip">
+      <string>The first input value is time in milliseconds</string>
+     </property>
+     <property name="text">
+      <string>First value is time (in ms)</string>
+     </property>
+    </widget>
    </item>
    <item>
     <spacer name="verticalSpacer_4">
