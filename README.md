@@ -9,7 +9,7 @@ Read and plot serial data from a microcontroller
     1. [Example 1: Plot analog data](#example-1-Sample-analog-data-and-plot-in-real-time)
     1. [Example 2: Plot more than one signal](#example-2-plot-more-than-one-signal)
     1. [Example 3: Using with Arduino](#example-3-using-with-arduino)
-    1. [Example 4: Plotting *x* vs *y*](#example-4-plotting-*x*-vs-*y*)
+    1. [Example 4: Plotting *x* vs *y*](#example-4-plotting-x-vs-y)
     1. [The Settings dialog](#settings)
 2. [Requirements](#requirements)
 
