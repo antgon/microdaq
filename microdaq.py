@@ -22,7 +22,7 @@ from ui.ui_settings_dlg import Ui_Dialog
 # GUI parameters
 GUI_REFRESH_RATE = 200  # In milliseconds
 WIN_WIDTH_SAMPLES = 500
-CURVE_COLOUR = "7fff00"
+CURVE_COLOUR = "#7fff00"
 
 # Serial parameters
 BAUD_DEFAULT = 115200
@@ -60,6 +60,8 @@ class SettingsDialog(QtWidgets.QDialog, Ui_Dialog):
         # UI settings
         self.widthSpinBox.setValue(settings.width)
         self.firstIsXcheckBox.setChecked(settings.first_is_x)
+        self.colourPushButton.setStyleSheet(
+            f"background-color : {self.settings.curve_colour}")
 
     @QtCore.pyqtSlot()
     def on_portRefreshButton_clicked(self):
@@ -76,18 +78,31 @@ class SettingsDialog(QtWidgets.QDialog, Ui_Dialog):
         if path:
             self.savePathLabel.setText(path)
 
+    @QtCore.pyqtSlot()
+    def on_colourPushButton_clicked(self):
+        dialog = QtGui.QColorDialog(self)
+        if dialog.exec_():
+            self.settings.curve_colour = dialog.currentColor().name()
+            self.colourPushButton.setStyleSheet(
+                f"background-color : {self.settings.curve_colour}")
+
 
 class Settings:
     def __init__(self):
+        # Connection settings
         self.baud = BAUD_DEFAULT
-        self.width = WIN_WIDTH_SAMPLES
-        self.save_path = os.path.expanduser("~")
         self.port = ''
         self.scan_ports()
         self.first_is_x = False
-        # Set as default the first port in the list (if any)
         if len(self.available_ports) > 0:
             self.port = self.available_ports[0].device
+
+        # UI settings
+        self.width = WIN_WIDTH_SAMPLES
+        self.curve_colour = CURVE_COLOUR
+
+        # Path for saving data
+        self.save_path = os.path.expanduser("~")
 
     def scan_ports(self):
         self.available_ports = list_ports.comports()
@@ -136,8 +151,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     @QtCore.pyqtSlot()
     def on_settingsButton_clicked(self):
         dialog = SettingsDialog(self.settings, parent=self)
-        ok = dialog.exec_()
-        if ok:
+        if dialog.exec_():
             self.settings.baud = int(dialog.baudComboBox.currentText())
             port_index = dialog.portComboBox.currentIndex()
             port = self.settings.available_ports[port_index]
@@ -351,7 +365,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             plot.showGrid(x=True, y=True)
 
             # Create curves.
-            curve = plot.plot(pen=CURVE_COLOUR)
+            curve = plot.plot(pen=self.settings.curve_colour)
             self.plots.append(plot)
             self.curves.append(curve)
             # plot.setXRange(0, self.settings.width)
