@@ -20,8 +20,9 @@ from ui.ui_main import Ui_MainWindow
 from ui.ui_settings_dlg import Ui_Dialog
 
 # GUI parameters
-GUI_REFRESH_RATE = 100  # In milliseconds
+GUI_REFRESH_RATE = 200  # In milliseconds
 WIN_WIDTH_SAMPLES = 500
+CURVE_COLOUR = "7fff00"
 
 # Serial parameters
 BAUD_DEFAULT = 115200
@@ -315,7 +316,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         y_tick_fontsize = 10
         # marker_fontsize = 8
         y_tick_margin = 60
-        curve_colour = "#acfa58"
 
         xfont = pg.QtGui.QFont()
         yfont = pg.QtGui.QFont()
@@ -351,7 +351,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             plot.showGrid(x=True, y=True)
 
             # Create curves.
-            curve = plot.plot(pen=curve_colour)
+            curve = plot.plot(pen=CURVE_COLOUR)
             self.plots.append(plot)
             self.curves.append(curve)
             # plot.setXRange(0, self.settings.width)
