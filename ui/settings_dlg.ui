@@ -200,10 +200,10 @@
       <item row="2" column="0" colspan="2">
        <widget class="QCheckBox" name="firstIsXcheckBox">
         <property name="toolTip">
-         <string>The first input value is time in milliseconds</string>
+         <string>Use the first signal as time (in milliseconds)</string>
         </property>
         <property name="text">
-         <string>First value is time (in ms)</string>
+         <string>First signal is time (in ms)</string>
         </property>
        </widget>
       </item>

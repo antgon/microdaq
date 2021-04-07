@@ -139,5 +139,5 @@ class Ui_Dialog(object):
         self.widthSpinBox.setToolTip(_translate("Dialog", "Window width in number of samples"))
         self.label_5.setText(_translate("Dialog", "Line colour"))
         self.colourPushButton.setToolTip(_translate("Dialog", "Colour of the curves"))
-        self.firstIsXcheckBox.setToolTip(_translate("Dialog", "The first input value is time in milliseconds"))
-        self.firstIsXcheckBox.setText(_translate("Dialog", "First value is time (in ms)"))
+        self.firstIsXcheckBox.setToolTip(_translate("Dialog", "Use the first signal as time (in milliseconds)"))
+        self.firstIsXcheckBox.setText(_translate("Dialog", "First signal is time (in ms)"))

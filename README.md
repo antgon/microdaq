@@ -2,6 +2,21 @@
 
 Read and plot serial data from a microcontroller
 
+***
+
+1. [Description](#description)
+1. [Usage](#usage)
+    1. [Example 1: Plot analog data](#example-1-Sample-analog-data-and-plot-in-real-time)
+    1. [Example 2: Plot more than one signal](#example-2:-plot-more-than-one-signal)
+    1. [Example 3: Using with Arduino](#example-3:-using-with-arduino)
+    1. [Example 4: Plotting *x* vs *y*](#example-4:-plotting-*x*-vs-*y*)
+    1. [The Settings dialog](#settings)
+2. [Requirements](#requirements)
+
+***
+
+## Description
+
 `microdaq` displays serial data in real time. It is intended as a simple
 way to plot data from a microcontroller. It is not very efficient in the
 way resources are used, as it repeatedly reads ascii from the serial
@@ -9,17 +24,6 @@ port `print`ed line-by-line by the microcontroller, but it helps to
 quickly evaluate microcontroller-acquired data values with minimal
 effort.
 
-***
-
-## Contents
-
-1. [Usage](#usage)
-    1. [Example 1](#example-1)
-    1. [Example 2](#example-2)
-    1. [Example 3](#example-3)
-2. [Requirements](#requirements)
-
-***
 
 ## Usage
 
@@ -29,22 +33,22 @@ effort.
 
 1. Run `python microdaq.py` on the "master" computer.
 
-1. Open the settings and set baud rate and port if necessary.
+1. Open [Settings](#settings) and set baud rate and port if necessary.
 
 1. Click the "play" button to display the data.
 
-1. Click the "recording" button to save the data to the default
+1. Click the "record" button to save the data to the default
    directory (as set in the settings dialog). The file name will be made
    up of the current date and time. The file format will be plain text
    (space-separated if more than one column).
 
-![GUI](img/gui_overview.png)
+![Initial window](img/initial_window.png)
 
-### Example 1
+### Example 1: Sample analog data and plot in real time
 
 A light-dependent resistor (aka photoresistor) was connected to a
 Raspberry Pico (adc pin 26) in order to measure the relative intensity
-of ambient light. The floowing micropython code was set to read and
+of ambient light. The following micropython code was set to read and
 print the measured voltage every 500 ms:
 
 ```python
@@ -63,7 +67,7 @@ while True:
     utime.sleep_ms(500)
 ```
 
-Running `python microdaq.py` on the "master" computer and clicking
+Running `python microdaq.py` on the "master" computer and clicking the
 "play" button shows in real time the data. In this example the y-axis
 units are volts (as established in the micropython code above when adc
 values are converted to voltage before printing).
@@ -71,7 +75,7 @@ values are converted to voltage before printing).
 ![One signal](img/one_signal.png)
 
 
-### Example 2
+### Example 2: Plot more than one signal
 
 More that one signal can be plotted simultaneously by just setting the
 microcontroller to print more than one value as needed. In this example,
@@ -109,7 +113,7 @@ trace is the relative ambient light intensity (in volts):
 ![Two signals](img/two_signals.png)
 
 
-### Example 3
+### Example 3: Using with Arduino
 
 To test on an Arduino, the following code was uploaded to an Arduino
 Uno. The two values must be printed on the same line, separated by a
@@ -141,6 +145,76 @@ After setting the correct baud rate and serial port in the settings
 dialog MicroDAQ plots the two "signals" in real time:
 
 ![Arduino traces](img/arduino_traces.png)
+
+### Example 4: Plotting *x* vs *y*
+
+In all the examples above the data sampled lacks time information: the
+*y* values are plotted against the index of the sample. To plot the
+sampled values instead against time it is possible to set up the
+microcontroller to `print` timer data and use this value in MicroDAQ. To
+illustrate this, following from [Example
+2](#example-2:-plot-more-than-one-signal) a thermometer was connected to
+a Raspberry Pico (adc pin 28). With the micropython code below the
+temperature is read every second and `print`ed to serial. This time,
+however, timer information (ticks in milliseconds) are also `print`ed
+(this must always be this first value in `print()`):
+
+```python
+from machine import ADC
+import utime
+
+conversion_factor = 3.3/(2**16-1)
+
+# Thermometer (TPM37, analog)
+tmp37 = ADC(28)
+
+while True:
+    now = utime.ticks_ms()
+    tmp37_adc_val = tmp37.read_u16()
+    tmp37_voltage = tmp37_adc_val * conversion_factor
+    tmp37_temperature = tmp37_voltage/0.02
+
+    print(now, tmp37_temperature)
+
+    utime.sleep(1)
+```
+MicroDAQ will plot both sets of data -- timer (in ms) and temperature (in deg C) -- as two signals:
+
+![](img/x-y-before-setting.png)
+
+But this is not what we want here: we want the first signal to be used
+as *x* values. That is achieved by opening the Settings dialog and
+checking *First signal is time* under [Plot settings](#plot-settings). Now the temperature is plotted against time (in seconds):
+
+![](img/x-y-after-setting.png)
+
+### Settings
+
+![Settings dialog](img/settings.png)
+
+#### Serial settings
+
+Select your microcontroller's baud rate and port. Pressing the port
+refresh button will scan for devices connected ot the serial port. Thus,
+you can connect/disconnect microcontrollers without having to restart
+MicroDAQ.
+
+#### Saving settings
+
+This sets the directory where all data will be saved. The files will be
+named according to their date and time of creation.
+
+#### Plot settings
+
+*Window width* sets the width of the plot in number of samples; i.e. a
+window width of 500 means that the last 500 samples will be displayed in
+real time. Values older than that are discarded from the view.
+
+*Line colour* opens a colour selection dialog to choose the colour of
+the plotted curve(s).
+
+*First signal is time*, if checked, the first signal in the data
+will not be plotted. Instead, this will be taken to be *x* and thus used to plot the rest of the data samples against these values; see [Example 4](#example-4:-plotting-*x*-vs-*y*).
 
 
 ## Requirements
