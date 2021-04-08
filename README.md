@@ -20,10 +20,10 @@ effort.
 
 1. [Requirements](#requirements)
 1. [Usage](#usage)
-    1. [Example 1](#Example-1-Sample-analog-data-and-plot-in-real-time)
-    1. [Example 2](#Example-2-Plot-more-than-one-signal)
-    1. [Example 3](#Example-3-Using-with-Arduino)
-    1. [Example 4](#Example-4-Plotting-x-vs-y)
+    1. [Example 1: Plot data from Raspberry Pico in real time](#Example-1-Sample-analog-data-and-plot-in-real-time)
+    1. [Example 2: Plot more than one signal](#Example-2-Plot-more-than-one-signal)
+    1. [Example 3: Arduino example](#Example-3-Using-with-Arduino)
+    1. [Example 4: Plot *x* vs *y*](#Example-4-Plotting-x-vs-y)
 1. [Settings](#Settings)
 
 ***
