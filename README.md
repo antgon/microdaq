@@ -1,16 +1,32 @@
 # microdaq
 
-<img align="right" src="ui/icon_v2.svg"/>
+<img align="right" src="ui/icon_v2.svg" width="100"/>
 
 Read and plot serial data from a microcontroller
 
-MicroDAQ displays serial data in real time. It is intended as a simple
+**MicroDAQ** displays serial data in real time. It is intended as a simple
 way to plot data from a microcontroller. It is not very efficient in the
 way resources are used, as it just repeatedly reads ascii from the
 serial port `print`ed line-by-line by the microcontroller, but it helps
 to quickly evaluate microcontroller-acquired data values with minimal
 effort.
 
+<!-- #<p align="right"> -->
+<!-- </p> -->
+
+***
+
+## Contents
+
+1. [Requirements](#requirements)
+1. [Usage](#usage)
+    1. [Example 1](#Example-1-Sample-analog-data-and-plot-in-real-time)
+    1. [Example 2](#Example-2-Plot-more-than-one-signal)
+    1. [Example 3](#Example-3-Using-with-Arduino)
+    1. [Example 4](#Example-4-Plotting-x-vs-y)
+1. [Settings](#Settings)
+
+***
 
 ## Requirements
 
@@ -100,9 +116,9 @@ while True:
 
     utime.sleep_ms(500)
 ```
-Running `microdaq` will detect and plot the two signals. In this figure,
-the top trace is the ambient temperature (in degrees C) and the bottom
-trace is the relative ambient light intensity (in volts):
+**MicroDAQ** will detect and plot the two signals. In this figure, the
+top trace is the ambient temperature (in degrees C) and the bottom trace
+is the relative ambient light intensity (in volts):
 
 ![Two signals](img/two_signals.png)
 
@@ -136,7 +152,7 @@ void loop() {
 the Arduino IDE, e.g. Adafruit Feather.)
 
 After setting the correct baud rate and serial port in the settings
-dialog MicroDAQ plots the two "signals" in real time:
+dialog **MicroDAQ** plots the two "signals" in real time:
 
 ![Arduino traces](img/arduino_traces.png)
 
@@ -172,7 +188,8 @@ while True:
 
     utime.sleep(1)
 ```
-MicroDAQ will plot both sets of data -- timer (in ms) and temperature (in deg C) -- as two signals:
+**MicroDAQ** will plot both sets of data -- timer (in ms) and
+temperature (in deg C) -- as two signals:
 
 ![](img/x-y-before-setting.png)
 
@@ -191,7 +208,7 @@ checking *First signal is time* under [Plot settings](#plot-settings). Now the t
 Select your microcontroller's baud rate and port. Pressing the port
 refresh button will scan for devices connected ot the serial port. Thus,
 you can connect/disconnect microcontrollers without having to restart
-MicroDAQ.
+**MicroDAQ**.
 
 #### Saving settings
 
