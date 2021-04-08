@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>MicroDAQ</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/icon_v2.svg</normaloff>:/icon_v2.svg</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
@@ -146,7 +150,8 @@
            <string>...</string>
           </property>
           <property name="icon">
-           <iconset theme="emblem-system"/>
+           <iconset theme="emblem-system">
+            <normaloff>.</normaloff>.</iconset>
           </property>
          </widget>
         </item>
@@ -215,6 +220,8 @@
    <header>pyqtgraph</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
