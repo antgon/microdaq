@@ -1,6 +1,6 @@
 # microdaq
 
-<img align="right" src="ui/icon_v2.svg"/>
+<img align="right" src="ui/icon_v2.svg" width="100"/>
 
 Read and plot serial data from a microcontroller
 
